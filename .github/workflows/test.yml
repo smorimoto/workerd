@@ -5,8 +5,6 @@ on:
     paths-ignore:
     - 'doc/**'
   push:
-    branches:
-    - main
 
 jobs:
   test:
@@ -15,15 +13,16 @@ jobs:
         os: [ubuntu-22.04, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: bazelbuild/setup-bazelisk@v2
-      - name: Cache
-        id: cache
-        uses: actions/cache@v2
+      - name: mount bazel cache
+        uses: actions/cache@v3
         with:
-          path: ~/bazel-disk-cache
-          key: ${{ runner.os }}-${{ runner.arch }}-bazel-disk-cache
-      - run: mkdir -p ~/bazel-disk-cache
+          path: ~/.cache/bazel
+          key: bazel-cache-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            bazel-cache-${{ runner.os }}-${{ github.run_id }}-
+            bazel-cache-${{ runner.os }}-
       - name: install dependencies
         if: ${{ runner.os == 'Linux' }}
         run: |
@@ -31,5 +30,4 @@ jobs:
             sudo apt-get install -y build-essential git clang libc++-dev
       - name: bazel tests
         run: |
-            bazel test --disk_cache=~/bazel-disk-cache --remote_cache=https://bazel:${{ secrets.BAZEL_CACHE_KEY }}@bazel-remote-cache.devprod.cloudflare.dev --verbose_failures --show_timestamps --keep_going --test_output=errors //...
-
+          bazel test --disk_cache=~/.cache/bazel --remote_cache=https://bazel:${{ secrets.BAZEL_CACHE_KEY }}@bazel-remote-cache.devprod.cloudflare.dev --verbose_failures --show_timestamps --keep_going --test_output=errors //...

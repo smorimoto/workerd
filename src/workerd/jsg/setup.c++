@@ -16,7 +16,7 @@
 #include <v8-cppgc.h>
 
 #ifdef WORKERD_ICU_DATA_EMBED
-#include <icudata-embed.capnp.h>
+#include "icudata-embed.capnp.h"
 #include <unicode/udata.h>
 #endif
 
